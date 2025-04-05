@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Mail, CircleUserRound, Phone } from "lucide-react";
 
 interface MobileMenuProps {
   items: {
@@ -16,93 +17,131 @@ interface MobileMenuProps {
 export default function MobileMenu({ items }: MobileMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
 
+  // Prevent body scroll when menu is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "auto";
+    }
+
+    return () => {
+      document.body.style.overflow = "auto";
+    };
+  }, [isOpen]);
+
   const toggleMenu = () => {
     setIsOpen(!isOpen);
   };
 
-  const closeMenu = () => {
-    setIsOpen(false);
-  };
-
   return (
     <div className="md:hidden">
+      {/* Menu Button */}
       <Button
         variant="ghost"
         size="icon"
         onClick={toggleMenu}
-        aria-label={isOpen ? "Close menu" : "Open menu"}
-        aria-expanded={isOpen}
         className="relative z-50"
       >
         {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
       </Button>
 
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm"
-            onClick={closeMenu}
-          >
-            <motion.div
-              initial={{ x: "100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "100%" }}
-              transition={{ duration: 0.3, ease: "easeOut" }}
-              className="fixed right-0 top-0 h-full w-3/4 max-w-xs bg-background p-6 shadow-lg"
-              onClick={(e) => e.stopPropagation()}
+      {/* Mobile Menu */}
+      <div
+        className={`fixed inset-0 bg-black/50 backdrop-blur-sm z-40 transition-opacity duration-300 ${
+          isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+        }`}
+        onClick={() => setIsOpen(false)}
+      />
+
+      <div
+        className={`fixed top-0 right-0 w-4/5 max-w-sm h-full bg-white dark:bg-gray-900 z-50 shadow-xl transform transition-transform duration-300 ease-in-out ${
+          isOpen ? "translate-x-0" : "translate-x-full"
+        }`}
+      >
+        {/* Menu Header */}
+        <div className="p-4 flex items-center justify-between border-b">
+          <div className="relative w-24 h-12">
+            <Image
+              src="/bmg-logo.png"
+              alt="BMG Web Develop"
+              fill
+              style={{ objectFit: "contain" }}
+            />
+          </div>
+          <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)}>
+            <X className="h-6 w-6" />
+          </Button>
+        </div>
+
+        {/* Menu Items */}
+        <div className="p-4 overflow-y-auto">
+          <nav className="space-y-4">
+            {items.map((item) => (
+              <a
+                key={item.name}
+                href={item.path}
+                onClick={(e) => {
+                  e.preventDefault();
+                  document.querySelector(item.path)?.scrollIntoView({
+                    behavior: "smooth",
+                  });
+                  setIsOpen(false);
+                }}
+                className="block py-2 px-4 text-white font-medium text-lg rounded-md bg-purple-600/90 hover:bg-purple-700 transition-colors shadow-sm"
+              >
+                {item.name}
+              </a>
+            ))}
+          </nav>
+
+          <div className="mt-8 space-y-4">
+            <Button
+              className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold py-3"
+              onClick={() => {
+                window.location.href = "#contact";
+                setIsOpen(false);
+              }}
             >
-              <div className="flex flex-col gap-6 pt-16">
-                {items.map((item) => (
-                  <motion.div
-                    key={item.name}
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{
-                      duration: 0.3,
-                      delay: 0.1 + items.indexOf(item) * 0.05,
-                    }}
-                    className="border-b border-gray-200 pb-2 dark:border-gray-700"
-                  >
-                    <Link
-                      href={item.path}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        document.querySelector(item.path)?.scrollIntoView({
-                          behavior: "smooth",
-                        });
-                        closeMenu();
-                      }}
-                      className="text-lg font-medium"
-                    >
-                      {item.name}
-                    </Link>
-                  </motion.div>
-                ))}
-                <motion.div
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.3, delay: 0.3 }}
-                  className="mt-4"
-                >
-                  <Button
-                    className="w-full"
-                    onClick={() => {
-                      window.location.href = "#contact";
-                      toggleMenu(); // Close mobile menu after clicking
-                    }}
-                  >
-                    Get Started
-                  </Button>
-                </motion.div>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+              Get Started
+            </Button>
+
+            <div className="grid grid-cols-3 gap-3 mt-6">
+              <a
+                href="mailto:benignomnez@gmail.com"
+                className="flex flex-col items-center p-3 bg-white dark:bg-gray-800 shadow-md rounded-lg"
+              >
+                <Mail className="h-6 w-6 text-purple-600 mb-1" />
+                <span className="text-xs font-medium text-gray-900 dark:text-gray-100">
+                  Email
+                </span>
+              </a>
+              <a
+                href="https://www.instagram.com/bmgwebdevelop_rd/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex flex-col items-center p-3 bg-white dark:bg-gray-800 shadow-md rounded-lg"
+              >
+                <CircleUserRound className="h-6 w-6 text-purple-600 mb-1" />
+                <span className="text-xs font-medium text-gray-900 dark:text-gray-100">
+                  Instagram
+                </span>
+              </a>
+              <a
+                href="https://wa.me/18499255780"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex flex-col items-center p-3 bg-white dark:bg-gray-800 shadow-md rounded-lg"
+              >
+                <Phone className="h-6 w-6 text-purple-600 mb-1" />
+                <span className="text-xs font-medium text-gray-900 dark:text-gray-100">
+                  WhatsApp
+                </span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
